@@ -12,7 +12,14 @@ from unittest import TestCase
 from flask import g
 from flask_oaiserver.oai import app
 from flask_oaiserver.config import *
+from flask_oaiserver.sets import get_sets_list
+from datetime import (timedelta, datetime)
 import re
+
+# TODO: move this to config.py
+CFG_SITE_URL = "www.ala.pl"
+# TODO: move this to config.py
+CFG_RESUMPTION_TOKEN_EXPIRE_TIME = 1
 
 
 class FlaskTestCase(TestCase):
@@ -22,6 +29,7 @@ class FlaskTestCase(TestCase):
     def setUp(self):
         self.app = app
         self.app.testing = True
+        self.oai_url = CFG_SITE_URL+"/oai2d"
         pass
 
     def tearDown(self):
@@ -68,7 +76,7 @@ class TestVerbs(FlaskTestCase):
 
     def test_identify(self):
         ########
-        # TODO - remove all placeholder values
+        # TODO: remove EARLIEST DATESTAMP placeholder
         ########
         with self.app.test_client() as c:
             result = c.get('/oai2d?verb=Identify', follow_redirects=True)
@@ -78,19 +86,22 @@ class TestVerbs(FlaskTestCase):
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/
          http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
-    <responseDate>{0}</responseDate>
-    <request verb="Identify">{1}</request>
+    <responseDate>{date}</responseDate>
+    <request verb="Identify">{url}</request>
     <Identify>
-        <repositoryName>{2}</repositoryName>
-        <baseURL>http://memory.loc.gov/cgi-bin/oai</baseURL>
+        <repositoryName>{repo_name}</repositoryName>
+        <baseURL>{url}</baseURL>
         <protocolVersion>2.0</protocolVersion>
-        <adminEmail>{3}</adminEmail>
+        <adminEmail>{admin_email}</adminEmail>
         <earliestDatestamp>1990-02-01T12:00:00Z</earliestDatestamp>
         <deletedRecord>transient</deletedRecord>
         <granularity>YYYY-MM-DDThh:mm:ssZ</granularity>
         <compression>deflate</compression>
      </Identify>
-</OAI-PMH>""".format(response_date, oai_url, CFG_SITE_NAME, CFG_ADMIN_EMAIL)
+</OAI-PMH>""".format(date=response_date,
+                     url=self.oai_url,
+                     repo_name=CFG_SITE_NAME,
+                     admin_email=CFG_ADMIN_EMAIL)
             result_data = result.data.decode("utf-8")
             result_data = re.sub(' +', '', result_data.replace('\n', ''))
             expected = re.sub(' +', '', expected.replace('\n', ''))
@@ -111,7 +122,7 @@ class TestVerbs(FlaskTestCase):
     <error code="badArgument">
         You have passed too many arguments together withEXLUSIVE argument.
     </error>
-</OAI-PMH>""".format(response_date, oai_url)
+</OAI-PMH>""".format(response_date, self.oai_url)
             result_data = result.data.decode("utf-8")
             result_data = re.sub(' +', '', result_data.replace('\n', ''))
             expected = re.sub(' +', '', expected.replace('\n', ''))
@@ -165,24 +176,31 @@ class TestVerbs(FlaskTestCase):
             <setName>Pictures collection</setName>
         </set>
     </ListSets>
-</OAI-PMH>""".format(response_date, oai_url)
+</OAI-PMH>""".format(response_date, self.oai_url)
             result_data = result.data.decode("utf-8")
             result_data = re.sub(' +', '', result_data.replace('\n', ''))
             expected = re.sub(' +', '', expected.replace('\n', ''))
             self.assertEqual(result_data, expected)
 
-    def test_list_sets_with_resumption_token(self):
+    def test_list_sets_long(self):
         with self.app.test_client() as c:
             result = c.get('/oai2d?verb=ListSets',
                            follow_redirects=True)
             response_date = getattr(g, 'response_date', None)
+            exp_date = datetime.strptime(response_date,"%Y-%m-%dT%H:%M:%Sz") + \
+                timedelta(hours=CFG_RESUMPTION_TOKEN_EXPIRE_TIME)
+            list_size = len(get_sets_list())
+            # TODO: remove placeholder value
+            coursor = 0
+            # TODO: remove placeholder value
+            token = "xxx45abttyz"
             expected = """<?xml version="1.0" encoding="UTF-8"?>
 <OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/
          http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
-    <responseDate>{0}</responseDate>
-    <requestverb="ListSets">{1}</request>
+    <responseDate>{date}</responseDate>
+    <requestverb="ListSets">{url}</request>
     <ListSets>
         <set>
             <setSpec>music</setSpec>
@@ -214,17 +232,21 @@ class TestVerbs(FlaskTestCase):
             <setSpec>music:(techno)</setSpec>
             <setName>Techno music collection</setName>
         </set>
-        <set>
-            <setSpec>pictures</setSpec>
-            <setName>Pictures collection</setName>
-        </set>
-        <resumptionToken expirationDate="{2}" completeListSize="{3}" cursor="{4}">{5}</resumptionToken>
+        <resumptionToken expirationDate="{exp_date}" completeListSize="{list_size}" cursor="{coursor}">{token}</resumptionToken>
     </ListSets>
-</OAI-PMH>""".format(response_date, oai_url, exp_date, list_size, coursor, token)
+</OAI-PMH>""".format(date=response_date,
+                     url=self.oai_url,
+                     exp_date=exp_date,
+                     list_size=list_size,
+                     coursor=coursor,
+                     token=token)
             result_data = result.data.decode("utf-8")
             result_data = re.sub(' +', '', result_data.replace('\n', ''))
             expected = re.sub(' +', '', expected.replace('\n', ''))
             self.assertEqual(result_data, expected)
 
-    def test_list_sets_with_extra_argument(self):
+    def test_list_sets_with_resumption_token(self):
+        pass
+
+    def test_list_sets_with_resumption_token_and_other_args(self):
         pass
