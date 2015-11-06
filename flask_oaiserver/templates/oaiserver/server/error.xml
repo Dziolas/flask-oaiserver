@@ -6,7 +6,7 @@
                  {% for key, value in incoming.items() %}
                     {{ key }}="{{ value }}"
                  {% endfor %}>
-                 http://an.oa.org/OAI-script
+                 {{ g.base_url }}
         </request>
     {% endif %}
     <error code="{{ g.error.type }}"

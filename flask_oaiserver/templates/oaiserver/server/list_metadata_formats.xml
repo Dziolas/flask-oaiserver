@@ -5,7 +5,7 @@
          {% if incoming.identifier %}
             identifier="{{ incoming.identifier }}"
          {% endif %}>
-    http://an.oa.org/OAI-script
+    {{ g.base_url }}
 </request>
 <ListMetadataFormats>
     {% for format in formats %}

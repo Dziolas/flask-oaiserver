@@ -5,7 +5,7 @@
          {% if incoming.resumptionToken %}
             resumptionToken="{{ incoming.resumptionToken }}"
          {% endif %}>
-    http://an.oa.org/OAI-script
+    {{ g.base_url }}
 </request>
 <ListSets>
     {% for set in sets %}
@@ -28,8 +28,10 @@
             {% endif %}
         </set>
     {% endfor %}
-    <resumptionToken expirationDate="2002-06-01T23:20:00Z"
-    completeListSize="6"
-    cursor="0">xxx45abttyz</resumptionToken>
+    {% if resumption_token %}
+        <resumptionToken expirationDate="2002-06-01T23:20:00Z"
+                         completeListSize="6"
+                         cursor="0">xxx45abttyz</resumptionToken>
+    {% endif %}
 </ListSets>
 {% endblock %}

@@ -11,15 +11,16 @@ from __future__ import absolute_import
 from unittest import TestCase
 from flask import g
 from flask_oaiserver.oai import app
-from flask_oaiserver.config import *
+from flask_oaiserver.config import (CFG_ADMIN_EMAIL,
+                                    CFG_SITE_NAME,
+                                    CFG_RESUMPTION_TOKEN_EXPIRE_TIME)
+try:
+    from flask_oaiserver.config import CFG_SITE_URL
+except:
+    CFG_SITE_URL = "http://localhost"
 from flask_oaiserver.sets import get_sets_list
 from datetime import (timedelta, datetime)
 import re
-
-# TODO: move this to config.py
-CFG_SITE_URL = "www.ala.pl"
-# TODO: move this to config.py
-CFG_RESUMPTION_TOKEN_EXPIRE_TIME = 1
 
 
 class FlaskTestCase(TestCase):
@@ -246,6 +247,9 @@ class TestVerbs(FlaskTestCase):
             self.assertEqual(result_data, expected)
 
     def test_list_sets_with_resumption_token(self):
+        pass
+
+    def test_list_sets_with_second_resumption_token(self):
         pass
 
     def test_list_sets_with_resumption_token_and_other_args(self):

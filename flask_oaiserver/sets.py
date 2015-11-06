@@ -9,6 +9,30 @@
 
 """Sets helper functions."""
 
+from ..config import CFG_SETS_MAX_LENGTH
 
-def get_sets_list():
-    return []
+
+# TODO: to be removed and substituted with database
+SETS=[{'spec': 'music',
+       'name': 'Music collection',
+       'description': 'This is a collection of \
+                  wide range of music.'},
+      {'spec': 'music:(chopin)',
+       'name': 'Chopin collection',
+       'description': 'Collection of music \
+                       composed by Chopin'},
+      {'spec': 'music:(techno)',
+       'name': 'Techno music collection'},
+      {'spec': 'pictures',
+       'name': 'Pictures collection'}
+      ]
+
+
+def get_sets_list(starting_position=0, max_length=CFG_SETS_MAX_LENGTH):
+    # TODO: in batabase implementation this should not get all elements and
+    # truncate them
+    return SETS[starting_position:starting_position+max_length]
+
+
+def get_sets_count():
+    return len(SETS)

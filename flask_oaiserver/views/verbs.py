@@ -11,6 +11,7 @@
 
 from flask import request, render_template, g
 import six
+from ..sets import (get_sets_list, get_sets_count)
 
 
 def _get_all_request_args():
@@ -76,21 +77,17 @@ def list_sets():
     if g.error:
         return render_template("error.xml", incoming=incoming)
     else:
+        sets = get_sets_list()
+        resunmption_token = {}
+        if len(sets) < get_sets_count():
+            # TODO: fix len
+            resunmption_token["coursor"] = len(sets)
+
+
         return render_template("list_sets.xml",
                                incoming=incoming,
-                               sets=[{'spec': 'music',
-                                      'name': 'Music collection',
-                                      'description': 'This is a collection of \
-                                                      wide range of music.'},
-                                     {'spec': 'music:(chopin)',
-                                      'name': 'Chopin collection',
-                                      'description': 'Collection of music \
-                                                      composed by Chopin'},
-                                     {'spec': 'music:(techno)',
-                                      'name': 'Techno music collection'},
-                                     {'spec': 'pictures',
-                                      'name': 'Pictures collection'}
-                                     ])
+                               sets=get_sets_list()
+                               resunmption_token=resunmption_token)
 
 
 def list_metadata_formats():

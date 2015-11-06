@@ -14,7 +14,7 @@
          {% if incoming.metadataPrefix %}
             metadataPrefix="{{ incoming.metadataPrefix }}"
          {% endif %}>
-         http://an.oa.org/OAI-script
+         {{ g.base_url }}
 </request>
 <ListIdentifiers>
     {% for record in records %}

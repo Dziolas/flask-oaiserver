@@ -23,6 +23,10 @@ from ..views.verbs import (identify,
                            get_record)
 from datetime import datetime
 from ..config import CFG_ADMIN_EMAIL, CFG_SITE_NAME
+try:
+    from ..config import CFG_SITE_URL
+except:
+    CFG_SITE_URL = "http://localhost"
 
 ALLOWED_VERBS = {'Identify': identify,
                  'ListSets': list_sets,
@@ -46,6 +50,8 @@ def server():
     g.response_date = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%Sz")
     g.admin_email = CFG_ADMIN_EMAIL
     g.repository_name = CFG_SITE_NAME
+    g.base_url = CFG_SITE_URL+"/oai2d"
+
     try:
         a = ALLOWED_VERBS[verb]
     except KeyError:
