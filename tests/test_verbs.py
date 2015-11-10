@@ -11,14 +11,7 @@ from __future__ import absolute_import
 from unittest import TestCase
 from flask import g
 from flask_oaiserver.oai import app
-from flask_oaiserver.config import (CFG_ADMIN_EMAIL,
-                                    CFG_SITE_NAME,
-                                    CFG_RESUMPTION_TOKEN_EXPIRE_TIME)
-try:
-    from flask_oaiserver.config import CFG_SITE_URL
-except:
-    CFG_SITE_URL = "http://localhost"
-from flask_oaiserver.sets import get_sets_list
+from flask_oaiserver.sets import get_sets_count
 from datetime import (timedelta, datetime)
 import re
 
@@ -30,8 +23,8 @@ class FlaskTestCase(TestCase):
     def setUp(self):
         self.app = app
         self.app.testing = True
-        self.oai_url = CFG_SITE_URL+"/oai2d"
-        pass
+        self.oai_url = self.app.config['CFG_SITE_URL']+"/oai2d"
+
 
     def tearDown(self):
         pass
@@ -101,8 +94,8 @@ class TestVerbs(FlaskTestCase):
      </Identify>
 </OAI-PMH>""".format(date=response_date,
                      url=self.oai_url,
-                     repo_name=CFG_SITE_NAME,
-                     admin_email=CFG_ADMIN_EMAIL)
+                     repo_name=self.app.config['CFG_SITE_NAME'],
+                     admin_email=self.app.config['CFG_ADMIN_EMAIL'])
             result_data = result.data.decode("utf-8")
             result_data = re.sub(' +', '', result_data.replace('\n', ''))
             expected = re.sub(' +', '', expected.replace('\n', ''))
@@ -131,6 +124,7 @@ class TestVerbs(FlaskTestCase):
 
     def test_list_sets(self):
         with self.app.test_client() as c:
+            self.app.config['CFG_SETS_MAX_LENGTH'] = 10
             result = c.get('/oai2d?verb=ListSets',
                            follow_redirects=True)
             response_date = getattr(g, 'response_date', None)
@@ -185,14 +179,14 @@ class TestVerbs(FlaskTestCase):
 
     def test_list_sets_long(self):
         with self.app.test_client() as c:
+            self.app.config['CFG_SETS_MAX_LENGTH'] = 3
             result = c.get('/oai2d?verb=ListSets',
                            follow_redirects=True)
             response_date = getattr(g, 'response_date', None)
             exp_date = datetime.strptime(response_date,"%Y-%m-%dT%H:%M:%Sz") + \
-                timedelta(hours=CFG_RESUMPTION_TOKEN_EXPIRE_TIME)
-            list_size = len(get_sets_list())
-            # TODO: remove placeholder value
-            coursor = 0
+                timedelta(hours=self.app.config['CFG_RESUMPTION_TOKEN_EXPIRE_TIME'])
+            coursor = self.app.config['CFG_SETS_MAX_LENGTH']
+            list_size = get_sets_count()
             # TODO: remove placeholder value
             token = "xxx45abttyz"
             expected = """<?xml version="1.0" encoding="UTF-8"?>
