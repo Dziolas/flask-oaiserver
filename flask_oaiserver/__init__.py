@@ -8,3 +8,7 @@
 # file for more details.
 
 """Flask-OAIServer module."""
+
+# import config
+
+# app.config.from_object(config)
