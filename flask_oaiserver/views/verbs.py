@@ -12,6 +12,9 @@
 from flask import request, render_template, g
 import six
 from ..sets import (get_sets_list, get_sets_count)
+from datetime import (datetime, timedelta)
+from ..oai import app
+from uuid import uuid4
 
 
 def _get_all_request_args():
@@ -78,16 +81,21 @@ def list_sets():
         return render_template("error.xml", incoming=incoming)
     else:
         sets = get_sets_list()
-        resunmption_token = {}
+        resumption_token = {}
         if len(sets) < get_sets_count():
-            # TODO: fix len
-            resunmption_token["coursor"] = len(sets)
-
+            resumption_token["coursor"] = app.config['CFG_SETS_MAX_LENGTH']
+            resumption_token["date"] = datetime.strptime(g.response_date,
+                                                         "%Y-%m-%dT%H:%M:%Sz") \
+                + timedelta(hours=app.config['CFG_RESUMPTION_TOKEN_EXPIRE_TIME'])
+            resumption_token["list_length"] = get_sets_count()
+            # TODO: create a function to make a db entry on creation of the
+            # resumption token
+            resumption_token["token"] = uuid4()
 
         return render_template("list_sets.xml",
                                incoming=incoming,
-                               sets=get_sets_list()
-                               resunmption_token=resunmption_token)
+                               sets=sets,
+                               resumption_token=resumption_token)
 
 
 def list_metadata_formats():

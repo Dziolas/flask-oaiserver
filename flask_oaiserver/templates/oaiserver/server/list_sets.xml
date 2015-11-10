@@ -29,9 +29,11 @@
         </set>
     {% endfor %}
     {% if resumption_token %}
-        <resumptionToken expirationDate="2002-06-01T23:20:00Z"
-                         completeListSize="6"
-                         cursor="0">xxx45abttyz</resumptionToken>
+        <resumptionToken expirationDate="{{ resumption_token['date'] }}"
+                         completeListSize="{{ resumption_token['list_length'] }}"
+                         cursor="{{ resumption_token['coursor'] }}">
+            {{ resumption_token['token'] }}
+        </resumptionToken>
     {% endif %}
 </ListSets>
 {% endblock %}
